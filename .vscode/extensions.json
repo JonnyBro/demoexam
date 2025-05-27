@@ -1,8 +1,6 @@
 {
 	"recommendations": [
 		"dbaeumer.vscode-eslint",
-		"esbenp.prettier-vscode",
-		"yoavbls.pretty-ts-errors",
-		"thinker.sort-json"
+		"esbenp.prettier-vscode"
 	]
 }
