@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="ru">
+	<head>
+		<meta charset="UTF-8" />
+		<title>Управление заказами - Авторизация</title>
+		<link rel="stylesheet" href="/style.css" />
+	</head>
+
+	<body>
+		<h1>Вход</h1>
+
+		<form method="POST" action="/auth">
+			<label for="username">Пользователь:</label>
+			<input type="text" id="username" name="username" required />
+			<br /><br />
+			<label for="password">Пароль:</label>
+			<input type="password" id="password" name="password" required />
+			<br /><br />
+			<button type="submit">Войти</button>
+		</form>
+	</body>
+</html>

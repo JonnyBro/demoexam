@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+	<meta charset="UTF-8">
+	<title>Управление заказами - Заказы</title>
+	<link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+	<h1>Заказы</h1>
+
+	<a href="/auth/logout">Выйти</a>
+
+	<form action="/orders" method="POST">
+		<div>
+			<label for="description">Описание:</label>
+			<textarea id="description" name="description" required></textarea>
+		</div>
+
+		<div>
+			<label for="status">Статус:</label>
+			<select id="status" name="status" required>
+				<option value="Ожидание">Ожидание</option>
+				<option value="В процессе">В процессе</option>
+				<option value="Завершён">Завершён</option>
+			</select>
+		</div>
+
+		<div>
+			<label for="client">Имя клиента:</label>
+			<input type="text" id="client" name="client" required>
+		</div>
+
+		<div>
+			<label for="device">Устройство:</label>
+			<input type="text" id="device" name="device" required>
+		</div>
+
+		<div>
+			<label for="problemType">Проблема:</label>
+			<input type="text" id="problemType" name="problemType" required>
+		</div>
+
+		<button type="submit">Создать заказ</button>
+	</form>
+
+	<ul>
+		<% orders.forEach(order => { %>
+			<li>
+				<strong>Заказ №<%= order.id %></strong><br>
+				Дата создания: <%= new Date(order.startDate).toLocaleString("ru-RU") %><br>
+				Клиент: <%= order.client %><br>
+				Устройство: <%= order.device%><br>
+				Проблема: <%= order.problemType %><br>
+				Комментарий: <%= order.description || "Не указано" %><br>
+				Статус: <%= order.status %><br>
+				<% if (order.endDate) { %>
+					Дата выполнения: <%= new Date(order.endDate).toLocaleString("ru-RU") %>
+				<% } %>
+			</li>
+			<% }) %>
+	</ul>
+</body>
+
+</html>
