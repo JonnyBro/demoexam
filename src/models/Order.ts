@@ -6,7 +6,7 @@ export interface OrderDetails {
 	description?: string;
 	client: string;
 	status: string;
-	endDate?: number | null;
+	endDate?: number;
 	master?: string;
 	comments?: string[];
 }
@@ -19,7 +19,7 @@ export class Order {
 	description?: string;
 	client: string;
 	status: string;
-	endDate?: number | null;
+	endDate?: number;
 	master?: string;
 	comments: string[];
 
