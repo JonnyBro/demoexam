@@ -60,8 +60,3 @@ pnpm dev
 `DELETE /orders/:id`
 
 * Allows to delete orders.
-
-`POST /orders/assign-master/:id`
-
-* Allows to set a master of an order.
-* Requires `master` in the request's body.

@@ -1,6 +1,5 @@
 import { Application, Router } from "express";
 import {
-	assingMaster,
 	createOrder,
 	deleteOrder,
 	getOrders,
@@ -16,13 +15,8 @@ router.use((req, res, next) => {
 });
 
 router.get("/", getOrders);
-
-router.post("/", createOrder);
-
+router.post("/", createOrder as Application);
 router.put("/:id", updateOrder as Application);
-
 router.delete("/:id", deleteOrder as Application);
-
-router.post("/assign-master/:id", assingMaster as Application);
 
 export default router;

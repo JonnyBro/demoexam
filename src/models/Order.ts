@@ -1,5 +1,5 @@
 export interface OrderDetails {
-	id: number;
+	id?: number;
 	startDate: number;
 	device: string;
 	problemType: string;
@@ -12,7 +12,7 @@ export interface OrderDetails {
 }
 
 export class Order {
-	id: number;
+	id?: number;
 	startDate: number;
 	device: string;
 	problemType: string;
@@ -24,7 +24,6 @@ export class Order {
 	comments: string[];
 
 	constructor(options: OrderDetails) {
-		this.id = options.id;
 		this.startDate = options.startDate;
 		this.device = options.device;
 		this.problemType = options.problemType;
@@ -40,18 +39,16 @@ export class Order {
 		if (newStatus && newStatus !== this.status) {
 			this.status = newStatus;
 
-			return `Статус заявки №${this.id} изменен.\n${
-				newStatus.toLowerCase() === "завершён" ? "Заявка завершена\n" : ""
-			}`;
-		} else return null;
+			return this.status;
+		}
 	}
 
-	addComment(comment: string): string | null | undefined {
+	addComment(comment: string) {
 		if (comment) {
 			this.comments.push(comment);
 
 			return this.comments.at(-1);
-		} else return null;
+		}
 	}
 
 	updateDescription(description: string) {

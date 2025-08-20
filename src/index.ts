@@ -1,11 +1,13 @@
-import express, { urlencoded, json } from "express";
+import DB, { initDatabase, initTestDatabase } from "@/database.js";
+import cors from "cors";
+import express, { json, urlencoded } from "express";
 import session from "express-session";
 import path from "path";
 import { fileURLToPath } from "url";
 import authRouter from "./routes/auth.js";
 import ordersRouter from "./routes/orders.js";
 import statsRouter from "./routes/stats.js";
-import cors from "cors";
+import usersRouter from "./routes/users.js";
 
 const app = express();
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -29,6 +31,7 @@ app.set("views", path.join(__dirname, "views"));
 app.use(express.static(path.join(__dirname, "public")));
 app.use("/auth", authRouter);
 app.use("/orders", ordersRouter);
+app.use("/users", usersRouter);
 app.use("/stats", statsRouter);
 
 app.get("/", (req, res) => {
@@ -37,6 +40,15 @@ app.get("/", (req, res) => {
 	res.redirect("/orders");
 });
 
-app.listen(port, () => {
+app.listen(port, async () => {
+	const db = await DB.getInstance();
+	if (!db) process.exit(1);
+
+	const init = await initDatabase(db);
+	if (!init) process.exit(1);
+
+	// Remove for prod
+	await initTestDatabase(db);
+
 	console.log(`Server is running on http://localhost:${port}`);
 });

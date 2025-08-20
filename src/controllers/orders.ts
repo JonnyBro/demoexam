@@ -1,89 +1,100 @@
 import { Request, Response } from "express";
 import { Order } from "../models/Order.js";
+import DB from "@/database.js";
 
-// Тестовая база данных
-export const orders = [
-	new Order({
-		id: 1,
-		startDate: 1728557640000,
-		device: "Ноутбук",
-		problemType: "Не заряжается",
-		description: "Заказан новый аккумулятор",
-		client: "Сергеев А.В.",
-		status: "Ждём запчасти",
-	}),
-	new Order({
-		id: 2,
-		startDate: 1742055818000,
-		device: "ПК",
-		problemType: "Не включается",
-		client: "Ермолаев А.И.",
-		status: "Ждём когда клиент принесёт устройство",
-	}),
-	new Order({
-		id: 3,
-		startDate: 1738859018000,
-		device: "КПК",
-		problemType: "Нет изо",
-		description: "Заменён дисплей",
-		client: "Иванов И.И.",
-		status: "Выполнен",
-		endDate: Date.now(),
-	}),
-];
+const database = await DB.getInstance();
 
-export const getOrders = (_req: Request, res: Response) => {
+export const getOrders = async (_req: Request, res: Response) => {
+	const orders = (await database.all("SELECT * FROM orders")) as Order[];
+
 	res.render("orders", { orders });
 };
 
-export const createOrder = (req: Request, res: Response) => {
+export const createOrder = async (req: Request, res: Response) => {
 	const { device, client, description, status, problemType } = req.body;
-	const newOrder = new Order({
-		id: orders.length + 1,
-		startDate: Date.now(),
-		device,
-		problemType,
-		description,
-		client,
-		status,
-	});
+	if (!device || !client || !description || !status || !problemType) {
+		return res.status(404).send("Не хватает данных");
+	}
 
-	orders.push(newOrder);
+	const response = await database.run(
+		// eslint-disable-next-line max-len
+		"INSERT INTO orders (device, client, description, status, problemType) VALUES (?, ?, ?, ?, ?)",
+		[device, client, description, status, problemType],
+	);
 
-	res.redirect("/orders");
-};
-
-export const updateOrder = (req: Request, res: Response) => {
-	const order = orders.find(o => o.id === parseInt(req.params.id));
-	if (!order) return res.status(404).send("Заказ не найден");
-
-	const { description, status } = req.body;
-
-	order.updateDescription(description);
-	order.updateStatus(status);
+	if (!response.changes) return res.status(404).send("Ничего не изменено");
 
 	res.redirect("/orders");
 };
 
-export const deleteOrder = (req: Request, res: Response) => {
-	const orderIndex = orders.findIndex(o => o.id === parseInt(req.params.id));
+export const updateOrder = async (req: Request, res: Response) => {
+	try {
+		const id = req.body.id as number;
+		if (!id) return res.status(400).send("ID заказа не указан");
 
-	if (orderIndex === -1) return res.status(404).send("Заказ не найден");
+		const order = await database.get<Order>("SELECT * FROM orders WHERE id = ?", id);
+		if (!order) return res.status(404).send("Заказ не найден");
+
+		const updates: Partial<Order> = {};
+		const params: any[] = [];
+
+		if (req.body.description) {
+			updates.description = req.body.description;
+			params.push(req.body.description);
+		}
+
+		if (req.body.endDate) {
+			updates.endDate = req.body.endDate;
+			params.push(req.body.endDate);
+		}
+
+		if (req.body.master) {
+			updates.master = req.body.master;
+			params.push(req.body.master);
+		}
+
+		if (req.body.status) {
+			updates.status = req.body.status;
+			params.push(req.body.status);
+		}
+
+		if (Object.keys(updates).length === 0) {
+			return res.status(400).send("Нет данных для обновления");
+		}
+
+		const setClause = Object.keys(updates)
+			.map(key => `${key} = ?`)
+			.join(", ");
+
+		const query = `UPDATE orders SET ${setClause} WHERE id = ?`;
+		params.push(id);
+
+		const result = await database.run(query, params);
+
+		if (result.changes === 0) {
+			return res.status(404).send("Заказ не найден или данные не изменились");
+		}
+
+		res.json({ success: true, message: "Заказ успешно обновлен" });
+	} catch (e) {
+		console.error("Ошибка при обновлении заказа", e);
+		res.status(500).send("Внутренняя ошибка сервера");
+	}
+};
+
+export const deleteOrder = async (req: Request, res: Response) => {
 	if (req.session.user?.role !== "admin") return res.status(401).send("Нет прав");
 
-	orders.splice(orderIndex, 1);
+	const id = req.body.id;
+	const order = (await database.get(
+		"SELECT * FROM orders WHERE id = ?",
+		id,
+	)) as Order;
+	if (!order) return res.status(404).send("Пользователь не найден");
 
-	res.redirect("/orders");
-};
+	const response = await database.run("DELETE FROM users WHERE id = ?", id);
 
-export const assingMaster = (req: Request, res: Response) => {
-	const id = parseInt(req.params.id);
-	const order = orders.find(order => order.id === id);
-	const { master } = req.body;
+	if (!response.changes) return res.status(404).send("Ничего не изменено");
 
-	if (!order) return res.json({ success: false, message: "Заказ не найден" });
-
-	order.master = master;
-
-	return res.json({ success: true, message: "Мастер назначен" });
+	res.redirect("/users");
 };
